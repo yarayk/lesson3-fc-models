@@ -1,6 +1,6 @@
 import torch
 import matplotlib.pyplot as plt
-
+import os
 
 def plot_training_history(history):
     """Визуализирует историю обучения"""
@@ -25,12 +25,27 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def save_model(model, path):
-    """Сохраняет модель"""
-    torch.save(model.state_dict(), path)
+def save_model(
+        path: str, 
+        model: torch.nn.Module, 
+        optimizer: torch.optim.Optimizer, 
+        epoch: int, 
+        best_test_loss: float, 
+        best_test_acc: float
+    ):
+    state_dict = {
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'epoch': epoch,
+        'best_test_loss': best_test_loss,
+        'best_test_acc': best_test_acc
+    }
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    torch.save(state_dict, path)
 
 
-def load_model(model, path):
-    """Загружает модель"""
-    model.load_state_dict(torch.load(path))
-    return model 
+def load_model(path: str, model: torch.nn.Module, optimizer: torch.optim.Optimizer):
+    state_dict = torch.load(path)
+    model.load_state_dict(state_dict['model'])
+    optimizer.load_state_dict(state_dict['optimizer'])
+    return state_dict['epoch'], state_dict['best_test_loss'], state_dict['best_test_acc']
